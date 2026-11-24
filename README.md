@@ -23,14 +23,15 @@ The overlay opens at the top-centre of the monitor your active window is on, nev
 
 ## Requirements
 
-- Windows 10/11
-- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Windows 10/11 (x64)
 - A knob that sends the standard media keys: **click = Volume Mute**, **turn = Volume Up/Down** (the default on most boards)
 
 ## Build and run
 
+Needs [Go](https://go.dev/dl/). The result is a single exe with no runtime to install.
+
 ```
-dotnet publish -c Release -o dist
+go build -ldflags -H=windowsgui -o dist\KnobMixer.exe
 dist\KnobMixer.exe
 ```
 
@@ -46,11 +47,13 @@ It lives in the system tray (knob icon). Right-click it for **Start with Windows
 
 ## How it's built
 
-- `KeyboardHook.cs`: global low-level keyboard hook (works regardless of focus)
-- `Controller.cs`: the click / turn / backspace state machine
-- `AudioModel.cs`: per-app volume via [NAudio](https://github.com/naudio/NAudio) (Windows Core Audio sessions)
-- `OverlayWindow.cs`: the no-focus, always-on-top WPF overlay
-- `Theme.cs` / `Icons.cs`: design tokens (flat dark theme, one teal accent) and vector icons
+- `main_windows.go`: startup, message loop and the queue the hook hands work to
+- `controller_windows.go`: global low-level keyboard hook (works regardless of focus) and the click / turn / backspace state machine
+- `audio_windows.go`: per-app volume via [go-wca](https://github.com/moutend/go-wca) (Windows Core Audio sessions)
+- `overlay_windows.go`: the no-focus, always-on-top layered overlay, drawn with GDI+
+- `tray_windows.go`: tray icon, menu and the Start with Windows registry entry
+- `theme.go` / `icons.go`: design tokens (flat dark theme, one teal accent) and vector icons
+- `syscall_windows.go`: Win32 declarations; `go generate` writes `zsyscall_windows.go` from them
 
 ## License
 
